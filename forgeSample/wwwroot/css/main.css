@@ -1,0 +1,53 @@
+﻿html, body{
+  min-height: 100%;
+  height: 100%;
+}
+
+.fill{
+  height: calc(100vh - 100px);
+}
+
+body {
+  padding-top: 60px; /* space for the top nav bar */
+  margin-right: 30px;
+}
+
+#userHubs {
+  overflow: auto;
+  width: 100%;
+  height: calc(100vh - 150px);
+}
+
+#forgeViewer {
+  width: 100%;
+}
+
+.projects-group > .row {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.projects-group > .row > .col-xs-4 {
+  display: inline-block;
+  float: none;
+  vertical-align: top;
+}
+
+.panel .panel-default {
+  width: 300px;
+}
+
+/* Important part */
+.modal-dialog{
+  overflow-y: initial !important
+}
+.modal-body{
+  height: 450px;
+  overflow-y: auto;
+}
+
+.v-center {
+  min-height:200px;
+  display: flex;
+  justify-content:center;
+  flex-flow: column wrap;
+}

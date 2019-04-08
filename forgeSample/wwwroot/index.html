@@ -1,0 +1,377 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <title>BIM 360 Dashboard</title>
+  <meta charset="utf-8" />
+  <link rel="shortcut icon"
+    href="https://github.com/Autodesk-Forge/learn.forge.viewhubmodels/raw/master/img/favicon.ico">
+  <!-- Common packages: jQuery, Bootstrap, jsTree -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jstree/3.3.7/jstree.min.js"></script>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jstree/3.3.7/themes/default/style.min.css" />
+  <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js"></script>
+  <link rel="stylesheet"
+    href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.min.css" />
+  <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js"></script>
+  <!-- Autodesk Forge Viewer files 
+  <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v6.0" type="text/css">
+  <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v6.0"></script>
+  <!-- this project files -->
+  <link href="css/main.css" rel="stylesheet" />
+  <script src="js/ForgeTree.js"></script>
+  <script src="js/ForgeBIM360.js"></script>
+  <script src="js/ForgeViewer.js"></script>
+</head>
+
+<body>
+  <!-- Fixed navbar by Bootstrap: https://getbootstrap.com/examples/navbar-fixed-top/ -->
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid">
+      <ul class="nav navbar-nav left">
+        <li>
+          <a href="http://developer.autodesk.com" target="_blank">
+            <img alt="Autodesk Forge" src="//developer.static.autodesk.com/images/logo_forge-2-line.png" height="20">
+          </a>
+        </li>
+      </ul>
+      <div style="float: right; margin-top: 15px;">
+        <span style="padding-right: 5px; display:none" data-toggle="modal" data-target="#provisionAccountModal"
+          title="Enable my BIM 360 Account"><span class="glyphicon glyphicon-cog glyphiconTop mlink"> </span> Enable my
+          BIM 360 Account</span>
+        <span id="userInfo"></span>
+        <span id="signOut" style="display:none"> <span class="glyphicon glyphicon-log-out glyphiconTop mlink"
+            title="Sign out"> </span></span>
+      </div>
+    </div>
+  </nav>
+  <!-- End of navbar -->
+  <div class="container-fluid projects-group">
+    <div class="row" id="projectByUnit">
+
+    </div>
+  </div>
+  <!-- Sign in modal  -->
+  <div class="modal fade" id="signInModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title">Autodesk Account Sigin</h4>
+        </div>
+        <div class="modal-body">
+          <div style="text-align: center;">
+            <button class="btn btn-lg btn-default" id="autodeskSigninButton">
+              <img src="https://github.com/Autodesk-Forge/learn.forge.viewhubmodels/raw/master/img/autodesk_text.png"
+                height="20"> Sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Select account modal  -->
+  <div class="modal fade" id="selectAccountModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title">Select BIM 360 Account</h4>
+        </div>
+        <div class="modal-body">
+          <ul class="list-group" id="hubsList">
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Create Project modal  -->
+  <div class="modal fade" id="createProjectModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title">Create project</h4>
+        </div>
+        <div class="modal-body">
+          <label for="basic-url">Project ID (prefix)</label>
+          <div class="input-group">
+            <span class="input-group-addon"> Use <b>NoProjNum</b> <input type="checkbox" id="checkNoProjNum">
+            </span>
+            <input type="text" id="newProjectId" maxlength="9" class="form-control">
+          </div>
+          <label for="basic-url">Project Name</label>
+          <div class="input-group">
+            <span class="input-group-addon" id="newProjectIdSpan"></span>
+            <input type="text" class="form-control" id="newProjectName" aria-describedby="basic-addon3">
+          </div>
+          <label for="basic-url">Start and End dates</label>
+          <div class="input-daterange input-group" id="datepicker">
+            <input type="text" class="input-sm form-control" id="startDate" />
+            <span class="input-group-addon">to</span>
+            <input type="text" class="input-sm form-control" id="endDate" />
+          </div>
+          <div class="form-group">
+            <label for="sel1">Type</label>
+            <select class="form-control" id="projectTypes">
+              <option>Commercial</option>
+              <option> Convention Center</option>
+              <option> Data Center</option>
+              <option> Hotel / Motel</option>
+              <option> Office</option>
+              <option> Parking Structure / Garage</option>
+              <option> Performing Arts</option>
+              <option> Retail</option>
+              <option> Stadium/Arena</option>
+              <option> Theme Park</option>
+              <option> Warehouse (non-manufacturing)</option>
+              <option> Healthcare</option>
+              <option> Assisted Living / Nursing Home</option>
+              <option> Hospital</option>
+              <option> Medical Laboratory</option>
+              <option> Medical Office</option>
+              <option> OutPatient Surgery Center</option>
+              <option> Institutional</option>
+              <option> Court House</option>
+              <option> Dormitory</option>
+              <option> Education Facility</option>
+              <option> Government Building</option>
+              <option> Library</option>
+              <option> Military Facility</option>
+              <option> Museum</option>
+              <option> Prison / Correctional Facility</option>
+              <option> Recreation Building</option>
+              <option> Religious Building</option>
+              <option> Research Facility / Laboratory</option>
+              <option> Residential</option>
+              <option> Multi-Family Housing</option>
+              <option> Single-Family Housing</option>
+              <option> Infrastructure</option>
+              <option> Airport</option>
+              <option> Bridge</option>
+              <option> Canal / Waterway</option>
+              <option> Dams / Flood Control / Reservoirs</option>
+              <option> Harbor / River Development</option>
+              <option> Rail</option>
+              <option> Seaport</option>
+              <option> Streets / Roads / Highways</option>
+              <option> Transportation Building</option>
+              <option> Tunnel</option>
+              <option> Waste Water / Sewers</option>
+              <option> Water Supply</option>
+              <option> Industrial & Energy</option>
+              <option> Manufacturing / Factory</option>
+              <option> Oil & Gas</option>
+              <option> Plant</option>
+              <option>Power Plant</option>
+              <option> Solar Far</option>
+              <option>Utilities</option>
+              <option>Wind Farm</option>
+              <option>Sample Projects</option>
+              <option>Demonstration Project</option>
+              <option>Template Project</option>
+              <option>Training Project</option>
+            </select>
+          </div>
+          <label for="basic-url">Value</label>
+          <div class="input-group">
+            <span class="input-group-addon">$</span>
+            <input type="text" id="newProjectValue" class="form-control" aria-label="Amount (to the nearest dollar)">
+            <span class="input-group-addon">.00</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="createProjectButton">Create Project</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Import users modal  -->
+  <div class="modal fade" id="importUsersModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title">Add users to project</h4>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="sel1">Role</label>
+            <select class="form-control" id="industryRoles">
+            </select>
+          </div>
+          <label for="sel1">Search &amp; select users to import</label>
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <div class="input-group">
+                <span class="input-group-addon">City</span>
+                <input type="text" id="userSearchCity" class="form-control" aria-label="City">
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="input-group">
+                <span class="input-group-addon">State</span>
+                <input type="text" id="userSearchState" class="form-control" aria-label="State or province">
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="input-group">
+                <span class="input-group-addon">Country</span>
+                <input type="text" id="userSearchCountry" class="form-control" aria-label="Country">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-sm-4 col-sm-offset-1">
+              <div class="list-group" id="list1">
+                <a href="#" class="list-group-item active">Search results <input title="toggle all" type="checkbox"
+                    class="all pull-right"></a>
+              </div>
+            </div>
+            <div class="col-md-2 v-center">
+              <button title="Send to list 2" class="btn btn-default center-block add"><i
+                  class="glyphicon glyphicon-chevron-right"></i></button>
+              <button title="Send to list 1" class="btn btn-default center-block remove"><i
+                  class="glyphicon glyphicon-chevron-left"></i></button>
+            </div>
+            <div class="col-sm-4">
+              <div class="list-group" id="list2">
+                <a href="#" class="list-group-item active">Selected<input title="toggle all" type="checkbox"
+                    class="all pull-right"></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="importUsersButton">Add users</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Provision BIM360  -->
+  <div class="modal fade" id="provisionAccountModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title">Thanks for using this sample!</h4>
+        </div>
+        <div class="modal-body">
+          <p>To view your BIM 360 Accounts files on this app please authorize my Forge Client ID with your BIM 360
+            Docs
+            Account.
+          </p>
+          <p>
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#provisionAccountStepsModal">
+              Show me the steps
+              <span class="glyphicon glyphicon-new-window"></span>
+            </button>
+          </p>
+          Use this as Forge Client ID:
+          <div class="input-group">
+            <input type="text" readonly="true" aria-describedby="CopyClientID" id="ClientID" class="form-control"
+              value="" />
+            <span class="input-group-addon" style="cursor: pointer" data-clipboard-target="#ClientID"
+              id="CopyClientID">Copy
+              to clipboard</span>
+          </div>
+          And this App Name:
+          <div class="input-group">
+            <input type="text" readonly="true" aria-describedby="CopyAppName" id="AppName" class="form-control"
+              value="BIM 360 Dashboard" />
+            <span class="input-group-addon" style="cursor: pointer" data-clipboard-target="#AppName"
+              id="CopyAppName">Copy
+              to clipboard</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="provisionAccountSave">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Provision BIM360 Help  -->
+  <div class="modal fade" id="provisionAccountStepsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel1">Step-by-step guide</h4>
+        </div>
+        <div class="modal-body">
+          <p>To access your BIM 360 Docs files with this app, you need to connect your BIM 360 account with the app.
+          </p>
+          <ol>
+            <li>Log in to
+              <a href="https://bim360enterprise.autodesk.com/" target="_blank">BIM 360 Account Administration
+              </a>. Note that you need account administrator permissions.
+            </li>
+            <li>If you have more than one account, select the account you want to integrate with the app.</li>
+            <li>From the toolbar, select
+              <strong>SETTINGS &gt; Apps &amp; Integrations</strong>.
+              <br />
+              <img
+                src="https://github.com/Autodesk-Forge/learn.forge.viewhubmodels/raw/master/img/provisioning/Step1.png"
+                width="500" />
+            </li>
+            <li>Click the
+              <strong>Add Integration</strong> button.
+              <br />
+              <img
+                src="https://github.com/Autodesk-Forge/learn.forge.viewhubmodels/raw/master/img/provisioning/Step2.png" />
+            </li>
+            <li>Select
+              <strong>BIM 360 Account Administration</strong> and
+              <strong>BIM 360 Docs</strong>, and click
+              <strong>Next</strong>.
+            </li>
+            <li>Select
+              <strong>I’m the developer</strong>, and click
+              <strong>Next</strong>.</li>
+            <li>In the
+              <strong>Forge Client ID</strong> and
+              <strong>App Name</strong> fields, enter the Forge client ID and app name provided by the app retailer.
+            </li>
+            <li>Select the
+              <strong>I have saved the Account ID information securely</strong> checkbox.</li>
+            <li>Click
+              <strong>Save</strong>.<br />
+              <img
+                src="https://github.com/Autodesk-Forge/learn.forge.viewhubmodels/raw/master/img/provisioning/Step3.png"
+                width="500" />
+            </li>
+            <p></p>
+            <p>Congratulations! You can now access your BIM 360 Docs files.</p>
+          </ol>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Understood, thanks!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    new Clipboard('.input-group-addon');
+  </script>
+</body>
+<iframe id="hiddenFrame" style="visibility: hidden; display: none">
+
+</html>
