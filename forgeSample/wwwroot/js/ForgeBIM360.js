@@ -84,7 +84,7 @@ $(document).ready(function () {
     $('#checkNoProjNum').change(function () {
         if ($(this).is(":checked")) {
             $("#newProjectId").prop('disabled', true);
-            $("#newProjectIdSpan").html('NoProjNum');
+            $("#newProjectIdSpan").html('NoProjNum-');
         }
         else {
             $("#newProjectId").prop('disabled', false);
