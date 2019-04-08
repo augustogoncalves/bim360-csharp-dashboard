@@ -20,6 +20,7 @@ var activeAccountId;
 function showProjects(hubId) {
     activeAccountId = hubId;
     $.getJSON('/api/forge/bim360/accounts/' + hubId + '/projects', function (res) {
+        $('#projectByUnit').empty();
         res.forEach(function (project) {
             if (project.HQData.business_unit_id == null) {
                 project.HQData.business_unit_id = 'nobizunit';
@@ -92,7 +93,6 @@ $(document).ready(function () {
     });
 
     $("#userSearchCity").keyup(function (event) {
-
         updateUserToImport();
     });
 
@@ -122,7 +122,7 @@ $(document).ready(function () {
             data: JSON.stringify({ name: projectId + projectName, start_date: startDate, end_date: endDate, project_type: projectType, business_unit_id: activeBizUnitId, value: newProjectValue, currency: 'USD' }),
             success: function (res) {
                 $('#createProjectModal').modal('toggle');
-                prepareToImportUsers(res.projectId);
+                prepareToImportUsers(res.id);
             },
             error: function (err) {
 
@@ -145,6 +145,7 @@ $(document).ready(function () {
             data: JSON.stringify({ roleId: roleId, userIds: ids }),
             success: function (res) {
                 $('#importUsersModal').modal('toggle');
+                showProjects(activeAccountId);
             },
             error: function (err) {
                 alert(err);

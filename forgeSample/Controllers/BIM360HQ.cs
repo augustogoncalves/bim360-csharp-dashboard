@@ -109,9 +109,8 @@ namespace forgeSample.Controllers
             requestCreateProject.AddParameter("application/json", Newtonsoft.Json.JsonConvert.SerializeObject(data), ParameterType.RequestBody);
             requestCreateProject.AddHeader("Authorization", "Bearer " + bearer.access_token);
 
-            //IRestResponse response = await client.ExecuteTaskAsync(request);
-
-            return JObject.Parse("{'projectId': '7bdd70f5-f4ea-4a84-aba3-c9cbdb5bd3da'}");
+            IRestResponse response = await client.ExecuteTaskAsync(requestCreateProject);
+            return JObject.Parse(response.Content);
         }
 
         [HttpPost]
@@ -131,6 +130,8 @@ namespace forgeSample.Controllers
                 userToAdd.services = new JObject();
                 userToAdd.services.project_administration = new JObject();
                 userToAdd.services.project_administration.access_level = "admin";
+                userToAdd.services.document_management = new JObject();
+                userToAdd.services.document_management.access_level = "admin";
                 usersToAdd.Add(userToAdd);
             }
 
@@ -145,7 +146,7 @@ namespace forgeSample.Controllers
 
             IRestResponse importUserResponse = await client.ExecuteTaskAsync(importUserRequest);
 
-            return null;
+            return Ok();
         }
 
         [HttpGet]
