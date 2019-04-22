@@ -63,17 +63,19 @@ namespace forgeSample.Controllers
             IRestResponse bizUnitsResponse = await client.ExecuteTaskAsync(bizUnitsRequest);
             dynamic bizUnits = JObject.Parse(bizUnitsResponse.Content);
 
-            foreach (dynamic projectHQ in projectsHQ)
+            if (bizUnits.business_units != null)
             {
-                foreach (dynamic bizUnit in bizUnits.business_units)
+                foreach (dynamic projectHQ in projectsHQ)
                 {
-                    if (projectHQ.business_unit_id == bizUnit.id)
+                    foreach (dynamic bizUnit in bizUnits.business_units)
                     {
-                        projectHQ.business_unit = bizUnit;
+                        if (projectHQ.business_unit_id == bizUnit.id)
+                        {
+                            projectHQ.business_unit = bizUnit;
+                        }
                     }
                 }
             }
-
 
             dynamic projectsFullData = new JArray();
             foreach (KeyValuePair<string, dynamic> projectDM in new DynamicDictionaryItems(projectsDM.data))
