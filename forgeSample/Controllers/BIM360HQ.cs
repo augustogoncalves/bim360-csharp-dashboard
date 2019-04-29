@@ -34,6 +34,40 @@ namespace forgeSample.Controllers
         private const string BASE_URL = "https://developer.api.autodesk.com";
 
         [HttpGet]
+        [Route("api/forge/bim360/accounts/{hubId}/permission")]
+        public async Task<bool> GetIsAccountAdmin(string hubId)
+        {
+            Credentials credentials = await Credentials.FromSessionAsync(base.Request.Cookies, Response.Cookies);
+
+            // 2-legged account:read token
+            TwoLeggedApi oauth = new TwoLeggedApi();
+            dynamic bearer = await oauth.AuthenticateAsync(Credentials.GetAppSetting("FORGE_CLIENT_ID"), Credentials.GetAppSetting("FORGE_CLIENT_SECRET"), "client_credentials", new Scope[] { Scope.AccountRead });
+
+            return await IsAccountAdmin(hubId, bearer.access_token, credentials);
+        }
+
+        private async Task<bool> IsAccountAdmin(string hubId, string accountReadToken, Credentials credentials)
+        {
+            UserProfileApi userApi = new UserProfileApi();
+            userApi.Configuration.AccessToken = credentials.TokenInternal;
+
+            dynamic profile = await userApi.GetUserProfileAsync();
+
+            RestClient client = new RestClient(BASE_URL);
+            RestRequest thisUserRequest = new RestRequest("/hq/v1/accounts/{account_id}/users/search?email={email}&limit=1", RestSharp.Method.GET);
+            thisUserRequest.AddParameter("account_id", hubId.Replace("b.", string.Empty), ParameterType.UrlSegment);
+            thisUserRequest.AddParameter("email", profile.emailId, ParameterType.UrlSegment);
+            thisUserRequest.AddHeader("Authorization", "Bearer " + accountReadToken);
+            IRestResponse thisUserResponse = await client.ExecuteTaskAsync(thisUserRequest);
+            dynamic thisUser = JArray.Parse(thisUserResponse.Content);
+
+
+            string role = thisUser[0].role;
+
+            return (role == "account_admin");
+        }
+
+        [HttpGet]
         [Route("api/forge/bim360/accounts/{hubId}/projects")]
         public async Task<JArray> GetProjectsAsync(string hubId)
         {
@@ -78,18 +112,22 @@ namespace forgeSample.Controllers
             }
 
             dynamic projectsFullData = new JArray();
-            foreach (KeyValuePair<string, dynamic> projectDM in new DynamicDictionaryItems(projectsDM.data))
+
+
+            foreach (dynamic projectHQ in projectsHQ)
             {
-                foreach (dynamic projectHQ in projectsHQ)
+                if (projectHQ.status != "active") continue;
+                foreach (KeyValuePair<string, dynamic> projectDM in new DynamicDictionaryItems(projectsDM.data))
                 {
                     if (projectHQ.id == projectDM.Value.id.Replace("b.", string.Empty))
                     {
-                        dynamic project = JObject.Parse(projectDM.Value.ToString());
-                        project.HQData = projectHQ;
-                        projectsFullData.Add(project);
+                        //dynamic project = JObject.Parse(projectDM.Value.ToString());
+                        //project.HQData = projectHQ;
+                        projectHQ.DMData = JObject.Parse(projectDM.Value.ToString());
                         break;
                     }
                 }
+                projectsFullData.Add(projectHQ);
             }
 
             return projectsFullData;
@@ -105,6 +143,10 @@ namespace forgeSample.Controllers
             TwoLeggedApi oauth = new TwoLeggedApi();
             dynamic bearer = await oauth.AuthenticateAsync(Credentials.GetAppSetting("FORGE_CLIENT_ID"), Credentials.GetAppSetting("FORGE_CLIENT_SECRET"), "client_credentials", new Scope[] { Scope.AccountRead, Scope.AccountWrite });
 
+            Credentials credentials = await Credentials.FromSessionAsync(base.Request.Cookies, Response.Cookies);
+
+            if (!await IsAccountAdmin(hubId, bearer.access_token, credentials)) return null;
+
             RestClient client = new RestClient(BASE_URL);
             RestRequest requestCreateProject = new RestRequest("/hq/v1/accounts/{account_id}/projects", RestSharp.Method.POST);
             requestCreateProject.AddParameter("account_id", accountId, ParameterType.UrlSegment);
@@ -119,6 +161,12 @@ namespace forgeSample.Controllers
         [Route("api/forge/bim360/accounts/{accountId}/projects/{projectId}/users")]
         public async Task<IActionResult> ImportUsersAsync(string accountId, string projectId, [FromBody]JObject data)
         {
+            Credentials credentials = await Credentials.FromSessionAsync(base.Request.Cookies, Response.Cookies);
+            TwoLeggedApi oauth = new TwoLeggedApi();
+            dynamic bearer = await oauth.AuthenticateAsync(Credentials.GetAppSetting("FORGE_CLIENT_ID"), Credentials.GetAppSetting("FORGE_CLIENT_SECRET"), "client_credentials", new Scope[] { Scope.AccountRead, Scope.AccountWrite });
+
+            if (!await IsAccountAdmin(accountId, bearer.access_token, credentials)) return null;
+
             string roleId = data["roleId"].Value<string>();
             JArray users = data["userIds"].Value<JArray>();
 
@@ -136,8 +184,6 @@ namespace forgeSample.Controllers
                 userToAdd.services.document_management.access_level = "admin";
                 usersToAdd.Add(userToAdd);
             }
-
-            Credentials credentials = await Credentials.FromSessionAsync(base.Request.Cookies, Response.Cookies);
 
             RestClient client = new RestClient(BASE_URL);
             RestRequest importUserRequest = new RestRequest("/hq/v2/accounts/{account_id}/projects/{project_id}/users/import", RestSharp.Method.POST);

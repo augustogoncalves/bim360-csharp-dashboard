@@ -17,36 +17,40 @@
 /////////////////////////////////////////////////////////////////////
 
 var activeAccountId;
+var isAdmin = false; // this is just a cache
+var projects;
+
 function showProjects(hubId) {
     activeAccountId = hubId;
-    $.getJSON('/api/forge/bim360/accounts/' + hubId + '/projects', function (res) {
-        $('#projectByUnit').empty();
-        res.forEach(function (project) {
-            if (project.HQData.business_unit_id == null) {
-                project.HQData.business_unit_id = 'nobizunit';
-                project.HQData.business_unit = {};
-                project.HQData.business_unit.name = 'Not specified'
-            }
+    $.getJSON('/api/forge/bim360/accounts/' + hubId + '/permission', function (res) {
+        isAdmin = res;
 
-            if (!$("#" + project.HQData.business_unit_id).exists()) {
-                $('#projectByUnit').append($('<div class="col-xs-4"><div class="panel panel-default" id='
-                    + project.HQData.business_unit_id + '><div class="panel-heading">'
-                    + project.HQData.business_unit.name + '<span class="glyphicon glyphicon-plus-sign glyphiconTop mlink" style="cursor:pointer;float:right" title="Create Project" onclick="createProject(\''
-                    + project.HQData.business_unit_id
-                    + '\')"></span></div><div class="panel-body"><ul class="list-group"></ul></div></div></div>'));
-            }
+        $.getJSON('/api/forge/bim360/accounts/' + hubId + '/projects', function (res) {
+            $('#projectByUnit').empty();
+            if (res == null) return;
+            projects = res;
+            res.forEach(function (project) {
+                if (project.business_unit_id == null) {
+                    project.business_unit_id = 'nobizunit';
+                    project.business_unit = {};
+                    project.business_unit.name = 'Not specified'
+                }
 
-            var listOfProjects = $('#' + project.HQData.business_unit_id).find('.list-group');
-            listOfProjects.append($('<li class="list-group-item"><a href="https://docs.b360.autodesk.com/projects/' + project.id.replace('b.', '') + '" target="_blank">' + project.attributes.name + '</a><span title="Import users" class="glyphicon glyphicon-user" style="float:right; cursor:pointer;" onclick="prepareToImportUsers(\'' + project.id + '\')"></span></li>'))
-            /*listOfProjects.append($('<li/>', {
-                'class': "list-group-item"
-            }).append($('<a/>', {
-                'href': 'https://docs.b360.autodesk.com/projects/' + project.id.replace('b.', ''),
-                'target': '_blank',
-                'text': project.attributes.name
-            })));*/
+                if (!$("#" + project.business_unit_id).exists()) {
+                    $('#projectByUnit').append($('<div class="col-xs-4"><div class="panel panel-default" id='
+                        + project.business_unit_id + '><div class="panel-heading">'
+                        + project.business_unit.name +
+                        (isAdmin ? '<span class="glyphicon glyphicon-plus-sign glyphiconTop mlink" style="cursor:pointer;float:right" title="Create Project" onclick="createProject(\'' + project.business_unit_id + '\')"></span>' : '')
+                        + '</div><div class="panel-body"><ul class="list-group"></ul></div></div></div>'));
+                }
+
+                var addUserButton = (isAdmin ? '<span title="Import users" class="glyphicon glyphicon-user" style="float:right; cursor:pointer;" onclick="prepareToImportUsers(\'' + project.id + '\')"></span>' : '');
+
+                var listOfProjects = $('#' + project.business_unit_id).find('.list-group');
+                if (project.DMData !== undefined) listOfProjects.append($('<li class="list-group-item"><a href="https://docs.b360.autodesk.com/projects/' + project.id.replace('b.', '') + '" target="_blank">' + project.name + '</a>' + addUserButton + '</li>'))
+                else listOfProjects.append($('<li class="list-group-item">' + project.name + addUserButton + '</li>'))
+            });
         });
-
     });
 }
 
@@ -116,6 +120,17 @@ $(document).ready(function () {
         var projectType = $("#projectTypes").val();
         var newProjectValue = $("#newProjectValue").val();
 
+        var duplicated = false;
+        projects.forEach(function (project) {
+            if (project.name.indexOf(projectId) == 0) duplicated = true;
+        })
+        if (duplicated)
+        {
+            alert('Project ID is already in use');
+            return;
+        }
+
+
         jQuery.post({
             url: '/api/forge/bim360/accounts/' + activeAccountId + '/projects',
             contentType: 'application/json',
@@ -145,7 +160,9 @@ $(document).ready(function () {
             data: JSON.stringify({ roleId: roleId, userIds: ids }),
             success: function (res) {
                 $('#importUsersModal').modal('toggle');
-                showProjects(activeAccountId);
+                setTimeout(function () {
+                    showProjects(activeAccountId);
+                }, 2000);
             },
             error: function (err) {
                 alert(err);
@@ -235,6 +252,18 @@ $(document).ready(function () {
 
     $('[type=checkbox]').click(function (e) {
         e.stopPropagation();
+    });
+
+    $("#newProjectId").keyup(function () {
+        var id = this.value;
+        if (id.length !== 9) return;
+
+        var duplicated = false;
+        projects.forEach(function (project) {
+            if (project.name.indexOf(id) == 0) duplicated = true;
+        })
+
+        $('#newProjectIdSpan').css('background-color', (duplicated ? 'red' : ''));
     });
 
     /* toggle checkbox when list group item is clicked */
