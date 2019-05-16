@@ -16,6 +16,7 @@
   <link rel="stylesheet"
     href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.min.css" />
   <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDBV72JOytVAAXlvey3kGB-XCu4S5XUxOs" type="text/javascript"></script>
   <!-- Autodesk Forge Viewer files 
   <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v6.0" type="text/css">
   <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v6.0"></script>
@@ -24,6 +25,7 @@
   <script src="js/ForgeTree.js"></script>
   <script src="js/ForgeBIM360.js"></script>
   <script src="js/ForgeViewer.js"></script>
+  <script src="js/Map.js"></script>
 </head>
 
 <body>
@@ -45,6 +47,11 @@
     </div>
   </nav>
   <!-- End of navbar -->
+  <div class="container-fluid" style="padding: 0px">
+      <div class="row" id="googlemap">
+  
+      </div>
+  </div>
   <div class="container-fluid projects-group">
     <div class="row" id="projectByUnit">
 

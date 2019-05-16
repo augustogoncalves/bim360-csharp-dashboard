@@ -9,7 +9,6 @@
 
 body {
   padding-top: 60px; /* space for the top nav bar */
-  margin-right: 30px;
 }
 
 #userHubs {
@@ -50,4 +49,11 @@ body {
   display: flex;
   justify-content:center;
   flex-flow: column wrap;
+}
+
+#googlemap{
+  height: 500px;
+  width: 100%;
+  margin: 0px;
+  margin-bottom: 30px;
 }

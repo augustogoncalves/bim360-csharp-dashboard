@@ -29,6 +29,7 @@ function showProjects(hubId) {
             $('#projectByUnit').empty();
             if (res == null) return;
             projects = res;
+            showMap();
             res.forEach(function (project) {
                 if (project.business_unit_id == null) {
                     project.business_unit_id = 'nobizunit';
