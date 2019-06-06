@@ -1,6 +1,25 @@
+/////////////////////////////////////////////////////////////////////
+// Copyright (c) Autodesk, Inc. All rights reserved
+// Written by Forge Partner Development
+//
+// Permission to use, copy, modify, and distribute this software in
+// object code form for any purpose and without fee is hereby granted,
+// provided that the above copyright notice appears in all copies and
+// that both that copyright notice and the limited warranty and
+// restricted rights notice below appear in all supporting
+// documentation.
+//
+// AUTODESK PROVIDES THIS PROGRAM "AS IS" AND WITH ALL FAULTS.
+// AUTODESK SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTY OF
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE.  AUTODESK, INC.
+// DOES NOT WARRANT THAT THE OPERATION OF THE PROGRAM WILL BE
+// UNINTERRUPTED OR ERROR FREE.
+/////////////////////////////////////////////////////////////////////
+
 var map;
 var geocoder;
-var markers = [];
+var projectMarkers = [];
+var bizunitsMarkers = [];
 
 $(document).ready(function () {
     if (map == null) {
@@ -59,7 +78,8 @@ function findLocation(iconUrl, search, label, url) {
                 if (url !== undefined)
                     window.open(this.url, '_blank');
             });
-            markers.push(marker);
+            if (url === undefined) bizunitsMarkers.push(marker);
+            else projectMarkers.push(marker);
             fitToView();
         } else {
             console.log('Geocode was not successful for the following reason: ' + status);
@@ -69,8 +89,12 @@ function findLocation(iconUrl, search, label, url) {
 
 function fitToView() {
     var bounds = new google.maps.LatLngBounds();
-    for (var i = 0; i < markers.length; i++) {
-        bounds.extend(markers[i].getPosition());
+    for (var i = 0; i < bizunitsMarkers.length; i++) {
+        bounds.extend(bizunitsMarkers[i].getPosition());
+    }
+    for (var i = 0; i < projectMarkers.length; i++) {
+        bounds.extend(projectMarkers[i].getPosition());
     }
     map.fitBounds(bounds);
+    //var markerCluster = new MarkerClusterer(map, projectMarkers, { imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' });
 }
