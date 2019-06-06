@@ -5,8 +5,6 @@
 [![License](http://img.shields.io/:license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 
 [![oAuth2](https://img.shields.io/badge/oAuth2-v1-green.svg)](http://developer.autodesk.com/)
-[![Data-Management](https://img.shields.io/badge/Data%20Management-v1-green.svg)](http://developer.autodesk.com/)
-[![Viewer](https://img.shields.io/badge/Viewer-v6-green.svg)](http://developer.autodesk.com/)
 [![BIM-360](https://img.shields.io/badge/BIM%20360-v1-green.svg)](http://developer.autodesk.com/)
 
 ![Intermediate](https://img.shields.io/badge/Level-Intermediate-blue.svg)
@@ -40,7 +38,7 @@ Also allow creating new projects and importing users to the project.
 
 Clone this project or download it. It's recommended to install [GitHub desktop](https://desktop.github.com/). To clone it via command line, use the following (**Terminal** on MacOSX/Linux, **Git Shell** on Windows):
 
-    git clone https://github.com/autodesk-forge/bim360-csharp-dashboard
+    git clone https://github.com/augustogoncalves/bim360-csharp-dashboard
 
 **Visual Studio** (Windows):
 

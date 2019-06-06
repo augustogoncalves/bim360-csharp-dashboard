@@ -26,6 +26,7 @@ using System.Text;
 using System.Net;
 using Autodesk.Forge.Model;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace forgeSample.Controllers
 {
@@ -121,8 +122,6 @@ namespace forgeSample.Controllers
                 {
                     if (projectHQ.id == projectDM.Value.id.Replace("b.", string.Empty))
                     {
-                        //dynamic project = JObject.Parse(projectDM.Value.ToString());
-                        //project.HQData = projectHQ;
                         projectHQ.DMData = JObject.Parse(projectDM.Value.ToString());
                         break;
                     }
@@ -130,7 +129,7 @@ namespace forgeSample.Controllers
                 projectsFullData.Add(projectHQ);
             }
 
-            return projectsFullData;
+            return new JArray(((JArray)projectsFullData).OrderBy(p => (string)p["name"]));
         }
 
         [HttpPost]
@@ -201,7 +200,7 @@ namespace forgeSample.Controllers
         [Route("api/forge/bim360/accounts/{accountId}/users")]
         public async Task<JArray> GetAllUsersAsync(string accountId)
         {
-            return JArray.Parse((await GetUsersAsync(accountId, Region.US)).Content);
+            return new JArray(JArray.Parse((await GetUsersAsync(accountId, Region.US)).Content).OrderBy(u => (string)u["name"]));
         }
 
         [HttpGet]

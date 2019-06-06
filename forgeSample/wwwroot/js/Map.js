@@ -96,5 +96,5 @@ function fitToView() {
         bounds.extend(projectMarkers[i].getPosition());
     }
     map.fitBounds(bounds);
-    //var markerCluster = new MarkerClusterer(map, projectMarkers, { imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' });
+    var markerCluster = new MarkerClusterer(map, projectMarkers, { imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' });
 }
